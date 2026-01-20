@@ -37,15 +37,27 @@ class ExpenseManager:
 
         return False
 
+
     def delete(self, _id: int) -> bool:
         data = self.storage.load()
 
         for idx, expense in enumerate(data):
-            if int(expense.get("id")) == _id:
+            if int(expense["id"]) == _id:
                 data.pop(idx)
                 self.storage.save(data)
                 return True
-        else:
-            return False
 
-    def
+        return False
+
+
+    def display_all(self) -> list:
+        return self.storage.load()
+
+
+    def summary(self) -> float:
+        data = self.storage.load()
+
+        if not data:
+            return 0.0
+
+        return sum(float(expense["amount"]) for expense in data)
