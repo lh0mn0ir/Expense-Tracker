@@ -5,13 +5,14 @@ from expense import Expense
 class ExpenseManager:
     def __init__(self, storage: StorageManager):
         self.storage = storage
-
+    # génération automatique de l'ID
     def _generate_id(self) -> int:
         data = self.storage.load()
         if not data:
             return 1
         return max(int(expense["id"]) for expense in data) + 1
 
+    # ajout d'une dépense
     def add(self, expense: Expense) -> Expense:
         expenses = self.storage.load()
 
@@ -21,23 +22,20 @@ class ExpenseManager:
         self.storage.save(expenses)
         return expense
 
-    def update(self, id_: int, update_data: dict) -> bool:
-        expenses = self.storage.load()
+    # modifiction d'une dépense
+    def update(self, updated_expense: Expense) -> bool:
+        data = self.storage.load()
 
-        for expense in expenses:
-            if int(expense["id"]) == id_:
-                expense["description"] = update_data.get(
-                    "description", expense["description"]
-                )
-                expense["amount"] = update_data.get("amount", expense["amount"])
-                expense["date"] = update_data.get("date", expense["date"])
-
-                self.storage.save(expenses)
+        for idx, expense_data in enumerate(data):
+            if int(expense_data["id"]) == updated_expense.id:
+                data[idx] = updated_expense.to_dict()
+                self.storage.save(data)
                 return True
 
         return False
 
 
+    # supprimer une dépense
     def delete(self, _id: int) -> bool:
         data = self.storage.load()
 
@@ -48,37 +46,31 @@ class ExpenseManager:
                 return True
 
         return False
+    # afficher toutes les dépenses avec ou sans tri
 
-    def display_all(self, sort_by: str = "date", reverse: bool = False) -> list:
+    def display_all(self, sort_by: str = "date", reverse: bool = False) -> list[Expense]:
         data = self.storage.load()
 
-        # tri par montant
+        expenses = [
+            Expense.from_dict(expense_data)
+            for expense_data in data
+        ]
         if sort_by == "amount":
-            return sorted(
-                data,
-                key=lambda expense: float(expense["amount"]),
-                reverse=reverse
-            )
+            return sorted(expenses, key=lambda e: e.amount, reverse=reverse)
 
-        # tri par date (par défaut)
-        return sorted(
-            data,
-            key=lambda expense: expense["date"],
-            reverse=reverse
-        )
+        return sorted(expenses, key=lambda e: e.date, reverse=reverse)
 
+    # total de toutes  dépenses ou par mois
     def summary(self, month: str = None) -> float:
-        data = self.storage.load()
-
-        if not data:
-            return 0.0
+        expenses = self.display_all()
 
         if month:
-            data = [
+            expenses = [
                 expense
-                for expense in data
-                if expense["date"].startswith(month)
+                for expense in expenses
+                if expense.date.isoformat().startswith(month)
             ]
 
-        return sum(float(expense["amount"]) for expense in data)
+        return sum(expense.amount for expense in expenses)
+
 
