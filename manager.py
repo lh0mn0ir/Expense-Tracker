@@ -10,7 +10,7 @@ class ExpenseManager:
         data = self.storage.load()
         if not data:
             return 1
-        return max(int(expense.get("id", 0)) for expense in data) + 1
+        return max(int(expense["id"]) for expense in data) + 1
 
     def add(self, expense: Expense) -> Expense:
         expenses = self.storage.load()
@@ -49,15 +49,36 @@ class ExpenseManager:
 
         return False
 
+    def display_all(self, sort_by: str = "date", reverse: bool = False) -> list:
+        data = self.storage.load()
 
-    def display_all(self) -> list:
-        return self.storage.load()
+        # tri par montant
+        if sort_by == "amount":
+            return sorted(
+                data,
+                key=lambda expense: float(expense["amount"]),
+                reverse=reverse
+            )
 
+        # tri par date (par défaut)
+        return sorted(
+            data,
+            key=lambda expense: expense["date"],
+            reverse=reverse
+        )
 
-    def summary(self) -> float:
+    def summary(self, month: str = None) -> float:
         data = self.storage.load()
 
         if not data:
             return 0.0
 
+        if month:
+            data = [
+                expense
+                for expense in data
+                if expense["date"].startswith(month)
+            ]
+
         return sum(float(expense["amount"]) for expense in data)
+
