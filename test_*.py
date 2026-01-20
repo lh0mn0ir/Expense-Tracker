@@ -1,4 +1,3 @@
-import os
 from storage import StorageManager
 from manager import ExpenseManager
 from expense import Expense
@@ -55,3 +54,17 @@ def test_update_non_existing_expense(tmp_path):
     result = manager.update(99, {"amount": 1000})
 
     assert result is False
+
+def test_delete_expense(tmp_path):
+    file_path = tmp_path / "expenses.csv"
+    storage = StorageManager(file_path)
+    manager = ExpenseManager(storage)
+
+    manager.add(Expense("Diner", 5000))
+    manager.add(Expense("Brunch", 15000))
+
+    delete = manager.delete(1)
+
+    data = storage.load()
+    assert delete is True
+    assert len(data) == 1

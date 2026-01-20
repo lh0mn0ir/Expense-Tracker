@@ -29,17 +29,23 @@ class ExpenseManager:
                 expense["description"] = update_data.get(
                     "description", expense["description"]
                 )
-                expense["amount"] = update_data.get(
-                    "amount", expense["amount"]
-                )
-                expense["date"] = update_data.get(
-                    "date", expense["date"]
-                )
+                expense["amount"] = update_data.get("amount", expense["amount"])
+                expense["date"] = update_data.get("date", expense["date"])
 
                 self.storage.save(expenses)
                 return True
 
         return False
 
-    def delete(self, _id:int):
-        expenses = self.storage.load()
+    def delete(self, _id: int) -> bool:
+        data = self.storage.load()
+
+        for idx, expense in enumerate(data):
+            if int(expense.get("id")) == _id:
+                data.pop(idx)
+                self.storage.save(data)
+                return True
+        else:
+            return False
+
+    def
