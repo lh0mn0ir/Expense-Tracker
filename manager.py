@@ -7,13 +7,39 @@ class ExpenseManager:
         self.storage = storage
 
     def _generate_id(self) -> int:
-        expenses = self.storage.load()
-        if not expenses:
+        data = self.storage.load()
+        if not data:
             return 1
-        return max(expense.get("id", 0) for expense in expenses) + 1
+        return max(int(expense.get("id", 0)) for expense in data) + 1
 
-    def add(self, expense: Expense):
+    def add(self, expense: Expense) -> Expense:
         expenses = self.storage.load()
-        expenses.append(expense.to_dict())
-        self.storage.save(expenses)
 
+        expense.id = self._generate_id()
+        expenses.append(expense.to_dict())
+
+        self.storage.save(expenses)
+        return expense
+
+    def update(self, id_: int, update_data: dict) -> bool:
+        expenses = self.storage.load()
+
+        for expense in expenses:
+            if int(expense["id"]) == id_:
+                expense["description"] = update_data.get(
+                    "description", expense["description"]
+                )
+                expense["amount"] = update_data.get(
+                    "amount", expense["amount"]
+                )
+                expense["date"] = update_data.get(
+                    "date", expense["date"]
+                )
+
+                self.storage.save(expenses)
+                return True
+
+        return False
+
+    def delete(self, _id:int):
+        expenses = self.storage.load()
