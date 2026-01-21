@@ -10,7 +10,7 @@ class ExpenseManager:
         data = self.storage.load()
         if not data:
             return 1
-        return max(int(expense["id"]) for expense in data) + 1
+        return max(int(e["id"]) for e in data) + 1
 
     # ajout d'une dépense
     def add(self, expense: Expense) -> Expense:
@@ -23,34 +23,29 @@ class ExpenseManager:
         return expense
 
     # modifiction d'une dépense
-    def update(self, updated_expense: Expense) -> bool:
+    def update(self, id_: int, update_data: dict) -> bool:
         data = self.storage.load()
-
         for idx, expense_data in enumerate(data):
-            if int(expense_data["id"]) == updated_expense.id:
-                data[idx] = updated_expense.to_dict()
+            if int(expense_data["id"]) == id_:
+                for key, value in update_data.items():
+                    expense_data[key] = value
                 self.storage.save(data)
                 return True
-
         return False
 
-
     # supprimer une dépense
-    def delete(self, _id: int) -> bool:
+    def delete(self, id_: int) -> bool:
         data = self.storage.load()
-
-        for idx, expense in enumerate(data):
-            if int(expense["id"]) == _id:
+        for idx, expense_data in enumerate(data):
+            if int(expense_data["id"]) == id_:
                 data.pop(idx)
                 self.storage.save(data)
                 return True
-
         return False
-    # afficher toutes les dépenses avec ou sans tri
 
+    # afficher toutes les dépenses avec ou sans tri
     def display_all(self, sort_by: str = "date", reverse: bool = False) -> list[Expense]:
         data = self.storage.load()
-
         expenses = [
             Expense.from_dict(expense_data)
             for expense_data in data
@@ -63,12 +58,11 @@ class ExpenseManager:
     # total de toutes  dépenses ou par mois
     def summary(self, month: str = None) -> float:
         expenses = self.display_all()
-
         if month:
             expenses = [
                 expense
                 for expense in expenses
-                if expense.date.isoformat().startswith(month)
+                if expense.date.startswith(month)
             ]
 
         return sum(expense.amount for expense in expenses)
