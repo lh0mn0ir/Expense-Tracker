@@ -21,7 +21,7 @@ class StorageManager:
     def save(self, data: list[dict]) -> None:
         try:
             with open(self.file_path, "w", newline="", encoding="utf-8") as file:
-                fields = ["id", "description", "amount", "date"]
+                fields = ["id", "date", "description", "amount"]
                 writer = csv.DictWriter(file, fieldnames=fields)
                 writer.writeheader()
                 writer.writerows(data)

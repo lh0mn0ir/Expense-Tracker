@@ -12,6 +12,13 @@ class ExpenseManager:
             return 1
         return max(int(e["id"]) for e in data) + 1
 
+    def get_by_id(self, id_: int) :
+        data = self.storage.load()
+        for e in data:
+            if int(e.get("id")) == id_:
+                return  Expense.from_dict(e)
+        return False
+
     # ajout d'une dépense
     def add(self, expense: Expense) -> Expense:
         expenses = self.storage.load()
