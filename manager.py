@@ -12,12 +12,14 @@ class ExpenseManager:
             return 1
         return max(int(e["id"]) for e in data) + 1
 
-    def get_by_id(self, id_: int) :
+    def get_by_id(self, id_: int) -> Expense | None:
         data = self.storage.load()
+
         for e in data:
             if int(e.get("id")) == id_:
-                return  Expense.from_dict(e)
-        return False
+                return Expense.from_dict(e)
+
+        return None
 
     # ajout d'une dépense
     def add(self, expense: Expense) -> Expense:
@@ -29,16 +31,17 @@ class ExpenseManager:
         self.storage.save(expenses)
         return expense
 
-    # modifiction d'une dépense
-    def update(self, id_: int, update_data: dict) -> bool:
+    def update(self, expense: Expense) -> bool:
         data = self.storage.load()
-        for idx, expense_data in enumerate(data):
-            if int(expense_data["id"]) == id_:
-                for key, value in update_data.items():
-                    expense_data[key] = value
+
+        for idx, item in enumerate(data):
+            if int(item["id"]) == expense.id:
+                data[idx] = expense.to_dict()
                 self.storage.save(data)
                 return True
+
         return False
+
 
     # supprimer une dépense
     def delete(self, id_: int) -> bool:

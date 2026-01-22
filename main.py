@@ -1,5 +1,5 @@
 import argparse
-import tabulate
+
 from storage import StorageManager
 from manager import ExpenseManager
 from expense import Expense
@@ -31,7 +31,7 @@ parser_delete = subparsers.add_parser("delete", help="Supprimer une dépense")
 parser_delete.add_argument("--id", type=int, required=True, help="ID de la dépense à supprimer")
 
 # -------------------- AFFICHER --------------------
-parser_display = subparsers.add_parser("display", help="Afficher toutes les dépenses")
+parser_display = subparsers.add_parser("list", help="Afficher toutes les dépenses")
 parser_display.add_argument("--sort_by", type=str, choices=["date", "amount"], default="date", help="Trier par date ou montant")
 parser_display.add_argument("--desc", action="store_true", help="Trier en ordre décroissant")
 
@@ -54,15 +54,19 @@ elif args.command == "update":
     if not existing:
         print("ID introuvable")
     else:
-        # Mettre à jour seulement les champs donnés
-        if args.description:
+        # Mise à jour partielle (PATCH)
+        if args.desc is not None:
             existing.description = args.desc
-        if args.amount:
+
+        if args.amount is not None:
             existing.amount = args.amount
-        if args.date:
+
+        if args.date is not None:
             existing.date = datetime.strptime(args.date, "%Y-%m-%d").date()
-        manager.update(args.id, existing.to_dict())
+
+        manager.update(existing)
         print(f"Dépense mise à jour : ID {existing.id}")
+
 
 elif args.command == "delete":
     if manager.delete(args.id):
@@ -70,11 +74,17 @@ elif args.command == "delete":
     else:
         print("ID introuvable")
 
-elif args.command == "display":
+elif args.command == "list":
     expenses = manager.display_all(sort_by=args.sort_by, reverse=args.desc)
+    import tabulate
+
     headers = ("ID", "Date", "Description", "Amount")
-    table = [[e.to_dict()[value] for value in e.to_dict()] for e in expenses]
-    print(tabulate.tabulate(table, headers))
+    table = [
+        [e.id, e.date, e.description, e.amount]
+        for e in expenses
+    ]
+    print(tabulate.tabulate(table, headers, tablefmt="grid"))
+
 
 elif args.command == "summary":
     total = manager.summary(month=args.month)
